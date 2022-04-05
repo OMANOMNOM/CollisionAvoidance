@@ -65,6 +65,20 @@ class Advertisement(dbus.service.Object):
     def get_path(self):
         return dbus.ObjectPath(self.path)
 
+    ## EXPERIMENTAL - Doesn't work on the pi only on the blade
+    # TODO update bluez on pis to 5.6
+    #def add_data(self, ad_type, data):
+    #    if not self.data:
+    #        self.data = dbus.Dictionary({}, signature='yv')
+    #    self.data[ad_type] = dbus.Array(data, signature='y')
+
+
+    def add_service_data(self, uuid, data):
+        if not self.service_data:
+            self.service_data = dbus.Dictionary({}, signature='sv')
+        self.service_data[uuid] = dbus.Array(data, signature='y')
+
+
     # Export method, so bluez can call tihhs over dbus
     @dbus.service.method(bluetooth_constants.DBUS_PROPERTIES,in_signature='s',out_signature='a{sv}')
     def GetAll(self, interface):
