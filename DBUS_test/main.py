@@ -50,7 +50,7 @@ bus = dbus.SystemBus()
 # we're assuming the adapter supports advertising
 adapter_path = bluetooth_constants.BLUEZ_NAMESPACE + bluetooth_constants.ADAPTER_NAME
 print(adapter_path)
-timer = 5
+timer = 15
 # Get advertising manager
 adv_mgr_interface = dbus.Interface(bus.get_object(bluetooth_constants.BLUEZ_SERVICE_NAME,adapter_path), bluetooth_constants.ADVERTISING_MANAGER_INTERFACE)
 # we're only registering one advertisement object so index (arg2) is hard
@@ -58,7 +58,7 @@ adv_mgr_interface = dbus.Interface(bus.get_object(bluetooth_constants.BLUEZ_SERV
 
 for i in range(0,5):
     # We create an advertising object and indicate peripheral. I would change this to broadcast
-    adv = Broadcast.Broadcast(bus, 0, "local" + str(i), [0x00, 0x01, 0x03,  0x01, 0x04,0x01, 0x02, 0x03, 0x04,0x00,  0x00, 0x02, 0x03, 0x04, 0x00, 0x01 ])
+    adv = Broadcast.Broadcast(bus, 0, "local" + str(i), [0x00, 0x01, 0x03,  0x01, 0x04,0x01, 0x02, 0x03, 0x04,0x00, 0x04,0x01, 0x03, 0x03,  0x01, 0x04,0x01, 0x02, 0x03, 0x03, 0x04,0x00,  0x00, 0x02])
     start_advertising()
     print("Advertising as "+ adv.local_name)
     mainloop = GLib.MainLoop()

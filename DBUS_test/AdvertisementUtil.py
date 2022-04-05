@@ -79,7 +79,7 @@ class Advertisement(dbus.service.Object):
         self.service_data[uuid] = dbus.Array(data, signature='y')
 
 
-    # Export method, so bluez can call tihhs over dbus
+    # Export method, so bluez can call this over dbus
     @dbus.service.method(bluetooth_constants.DBUS_PROPERTIES,in_signature='s',out_signature='a{sv}')
     def GetAll(self, interface):
         if interface != bluetooth_constants.ADVERTISEMENT_INTERFACE:
