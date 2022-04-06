@@ -1,0 +1,3 @@
+print(0x00)
+print(type(0x00))
+print(0x0101)
