@@ -14,9 +14,11 @@ class Broadcast(AdvertisementUtil.Advertisement):
         packet = struct.pack('ll', longitude, latitude)
         # Whilst its not the proper way to use UUID and gatt characteristics
         # It works.
-        print(packet)
+        print(f"raw hex{packet.hex()}")
         testPacket = struct.unpack('ll', packet)
+        print(f"size is : {len(packet)}")
         print(testPacket)
+        
         self.add_service_data('9999', packet)
 
     # Converts decimal longlat to our 10cm units

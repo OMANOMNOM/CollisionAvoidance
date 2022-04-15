@@ -79,9 +79,18 @@ def printDroneDetails(drone):
         print('------ *£* -----')
         print("WE found the drone")
         packet = bluetooth_utils.dbus_to_python(drone['ServiceData'])
-        long, lat = struct.unpack('ll', packet)
-        print(f'long : {long}')
-        print(f'lat : {lat}')
+        print(packet)
+        array = packet.values()
+        array = list(packet.values())[0]
+        tempstr = ""
+        for i in array:
+            print(type(i))
+            print(hex(i))
+            tempstr = tempstr + str(format(i, 'x'))
+        print(tempstr)
+        long, lat = struct.unpack('ll', bytes(tempstr))
+        #print(f'long : {long}')
+        #print(f'lat : {lat}')
 
 def printDeviceData(dev, path):
     print("CHG path :", path)
