@@ -5,6 +5,7 @@ import bluetooth_constants
 import dbus
 import dbus.mainloop.glib
 import sys
+import struct 
 sys.path.insert(0, '.')
 
 # When bluez performs scanning, an object representing it is created by bluez. It is exported
@@ -77,7 +78,10 @@ def printDroneDetails(drone):
     if 'Name' in drone and 'local' in drone['Name']:
         print('------ *£* -----')
         print("WE found the drone")
-        print(bluetooth_utils.dbus_to_python(drone['ServiceData']))
+        packet = bluetooth_utils.dbus_to_python(drone['ServiceData'])
+        long, lat = struct.unpack('ll', packet)
+        print(f'long : {long}')
+        print(f'lat : {lat}')
 
 def printDeviceData(dev, path):
     print("CHG path :", path)
