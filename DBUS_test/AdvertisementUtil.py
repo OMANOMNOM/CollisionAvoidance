@@ -76,6 +76,7 @@ class Advertisement(dbus.service.Object):
     def add_service_data(self, uuid, data):
         if not self.service_data:
             self.service_data = dbus.Dictionary({}, signature='sv')
+        # array of bytes
         self.service_data[uuid] = dbus.Array(data, signature='y')
 
 

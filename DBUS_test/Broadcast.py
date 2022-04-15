@@ -9,15 +9,25 @@ class Broadcast(AdvertisementUtil.Advertisement):
 
         if binaryData == None:
             pass
-        latitude = (self.LongLat2Unit(latitude)) 
-        longitude = (self.LongLat2Unit(longitude))
-        packet = struct.pack('ll', longitude, latitude)
+        #latitude = (self.LongLat2Unit(latitude)) 
+        #longitude = (self.LongLat2Unit(longitude))
+        packet = struct.pack('l', latitude)
         # Whilst its not the proper way to use UUID and gatt characteristics
         # It works.
-        print(f"raw hex{packet.hex()}")
-        testPacket = struct.unpack('ll', packet)
-        print(f"size is : {len(packet)}")
-        print(testPacket)
+        print(f"raw hex {packet.hex('-')}")
+        #print(type(packet))
+        #testPacket = struct.unpack('l', packet)
+        #print(testPacket)
+
+        #arr = [56, 255, 255, 255]
+        #temp = ""
+        #for i in arr:
+        #    temp += hex(int(i))[2:]
+
+        #print(temp)
+        #sds = bytes.fromhex(temp)
+        #testPacket = struct.unpack('i', sds)
+        #print(f" our byte test is {testPacket}")
         
         self.add_service_data('9999', packet)
 
