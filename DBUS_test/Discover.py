@@ -84,11 +84,13 @@ def printDroneDetails(drone):
         array = list(packet.values())[0]
         tempstr = ""
         for i in array:
-            print(type(i))
-            print(hex(i))
-            tempstr = tempstr + str(format(i, 'x'))
+            tempstr += hex(i)[2:]
         print(tempstr)
-        long, lat = struct.unpack('ll', bytes(tempstr))
+
+        data = bytes.fromhex(tempstr)
+        long, lat = struct.unpack('ii', bytes(data))
+        print(long)
+        print(lat)
         #print(f'long : {long}')
         #print(f'lat : {lat}')
 

@@ -9,11 +9,10 @@ class Broadcast(AdvertisementUtil.Advertisement):
 
         if binaryData == None:
             pass
-        #latitude = (self.LongLat2Unit(latitude)) 
-        #longitude = (self.LongLat2Unit(longitude))
-        packet = struct.pack('l', latitude)
-        # Whilst its not the proper way to use UUID and gatt characteristics
-        # It works.
+        latitude = (self.LongLat2Unit(latitude)) 
+        longitude = (self.LongLat2Unit(longitude))
+        packet = struct.pack('ii', latitude, longitude)
+        
         print(f"raw hex {packet.hex('-')}")
         #print(type(packet))
         #testPacket = struct.unpack('l', packet)
