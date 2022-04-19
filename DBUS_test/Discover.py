@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 from gi.repository import GLib
-import test.bluetooth_utils as bluetooth_utils
+import bluetooth_utils as bluetooth_utils
 import bluetooth_constants
 import dbus
 import dbus.mainloop.glib
@@ -75,7 +75,7 @@ def discovery_timeout():
     return True
 
 def printDroneDetails(drone):
-    if 'Name' in drone and 'local' in drone['Name']:
+    if 'Name' in drone and 'Drone' in drone['Name']:
         print('------ *£* -----')
         print("WE found the drone")
         packet = bluetooth_utils.dbus_to_python(drone['ServiceData'])

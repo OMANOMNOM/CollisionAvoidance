@@ -48,7 +48,7 @@ bus = dbus.SystemBus()
 # we're assuming the adapter supports advertising
 adapter_path = bluetooth_constants.BLUEZ_NAMESPACE + bluetooth_constants.ADAPTER_NAME
 print(adapter_path)
-timer = 15
+timer = 5
 # Get advertising manager
 adv_mgr_interface = dbus.Interface(bus.get_object(bluetooth_constants.BLUEZ_SERVICE_NAME,adapter_path), bluetooth_constants.ADVERTISING_MANAGER_INTERFACE)
 # we're only registering one advertisement object so index (arg2) is hard
@@ -56,7 +56,7 @@ adv_mgr_interface = dbus.Interface(bus.get_object(bluetooth_constants.BLUEZ_SERV
 
 for i in range(0,5):
 
-    testUAV = Uav.Uav("Drone1", "69", 56, -22, 10, [1,0,0])
+    testUAV = Uav.Uav(f"Drone{i}", "69", 56, -22, 10, [1,0,0])
     # We create an advertising object and indicate peripheral. I would change this to broadcast
     adv = Broadcast.Broadcast(bus, 0, testUAV)
     start_advertising()
