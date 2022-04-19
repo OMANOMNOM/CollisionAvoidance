@@ -12,13 +12,12 @@ import time
 import threading
 import Broadcast
 import struct
+import Uav
 
 sys.path.insert(0, '.')
-
 bus = None
 adapter_path = None
 adv_mgr_interface = None
-
 
 # Success callback
 def register_ad_cb():
@@ -29,12 +28,10 @@ def register_ad_error_cb(error):
     print('Error: Failed to register advertisement: ' + str(error))
     mainloop.quit()
 
-
 def shutdown(timeout):
     print('Advertising for {} seconds...'.format(timeout))
     time.sleep(timeout)
     mainloop.quit()
-
 
 def start_advertising():
     global adv
@@ -58,8 +55,10 @@ adv_mgr_interface = dbus.Interface(bus.get_object(bluetooth_constants.BLUEZ_SERV
 #coded as 
 
 for i in range(0,5):
+
+    testUAV = Uav.Uav("Drone1", "69", 56, -22, 10, [1,0,0])
     # We create an advertising object and indicate peripheral. I would change this to broadcast
-    adv = Broadcast.Broadcast(bus, 0, "local1", [0x00, 0x01, 0x03,  0x01, 0x04,0x01, 0x02, 0x03, 0x04,0x00, 0x04,0x01, 0x03, 0x03,  0x01, 0x04,0x01, 0x02, 0x03, 0x03, 0x04,0x00,  0x00, 0x02], 56, -22)
+    adv = Broadcast.Broadcast(bus, 0, testUAV)
     start_advertising()
     print("Advertising as "+ adv.local_name)
     mainloop = GLib.MainLoop()

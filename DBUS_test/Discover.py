@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 from gi.repository import GLib
-import bluetooth_utils
+import test.bluetooth_utils as bluetooth_utils
 import bluetooth_constants
 import dbus
 import dbus.mainloop.glib
@@ -91,10 +91,14 @@ def printDroneDetails(drone):
 
         data = bytes.fromhex(tempstr)
         print(data.hex('-'))
-        long, lat = struct.unpack('ii', bytes(data))
-        print(long)
-        print(lat)
-        #print(f'long : {long}')
+        long, lat, altitude, velX, velY, velZ = struct.unpack('iiHhhh', bytes(data))
+        print(f"long: {long}")
+        print(f"lat: {lat}")
+        print(f"altitude: {altitude}")
+        print(f'velX: {velX}')
+        print(f"velY: {velY}")
+        print(f"VelZ: {velZ}")
+
         #print(f'lat : {lat}')
 
 def printDeviceData(dev, path):
