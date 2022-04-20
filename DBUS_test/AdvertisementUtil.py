@@ -34,9 +34,11 @@ class Advertisement(dbus.service.Object):
         self.solicit_uuids = None
         self.service_data = None
         self.local_name = localName
-        self.include_tx_power = False
+        self.include_tx_power = True
         self.data = None
         self.discoverable = True
+        self.MaxInterval = 500
+        self.MinInterval = 1000
         dbus.service.Object.__init__(self, bus, self.path)
 
     def get_properties(self):
@@ -58,6 +60,10 @@ class Advertisement(dbus.service.Object):
             properties['Includes'] = dbus.Array(["tx-power"], signature='s')
         if self.data is not None:
             properties['Data'] = dbus.Dictionary(self.data, signature='yv')
+        if self.MaxInterval is not None:
+            properties['MaxInterval'] = dbus.UInt32(self.MaxInterval)
+        if self.MinInterval is not None:
+            properties['MinInterval'] = dbus.UInt32(self.MinInterval)
 
         print(properties)
         return {bluetooth_constants.ADVERTISING_MANAGER_INTERFACE:properties}

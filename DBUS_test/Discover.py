@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 from gi.repository import GLib
-import bluetooth_utils as bluetooth_utils
+#import bluetooth_utils as bluetooth_utils
 import bluetooth_constants
 import dbus
 import dbus.mainloop.glib
@@ -22,6 +22,63 @@ timer_id = None
 
 devices = {}
 
+def byteArrayToHexString(bytes):
+    hex_string = ""
+    for byte in bytes:
+        hex_byte = '%02X' % byte
+        hex_string = hex_string + hex_byte
+    return hex_string
+
+def dbus_to_python(data):
+    if isinstance(data, dbus.String):
+        data = str(data)
+    if isinstance(data, dbus.ObjectPath):
+        data = str(data)
+    elif isinstance(data, dbus.Boolean):
+        data = bool(data)
+    elif isinstance(data, dbus.Int64):
+        data = int(data)
+    elif isinstance(data, dbus.Int32):
+        data = int(data)
+    elif isinstance(data, dbus.Int16):
+        data = int(data)
+    elif isinstance(data, dbus.UInt16):
+        data = int(data)
+    elif isinstance(data, dbus.Byte):
+        data = int(data)
+    elif isinstance(data, dbus.Double):
+        data = float(data)
+    elif isinstance(data, dbus.Array):
+        data = [dbus_to_python(value) for value in data]
+    elif isinstance(data, dbus.Dictionary):
+        new_data = dict()
+        for key in data.keys():
+            new_data[key] = dbus_to_python(data[key])
+        data = new_data
+    return data
+
+def device_address_to_path(bdaddr, adapter_path):
+    # e.g.convert 12:34:44:00:66:D5 on adapter hci0 to /org/bluez/hci0/dev_12_34_44_00_66_D5
+    path = adapter_path + "/dev_" + bdaddr.replace(":","_")
+    return path
+
+def get_name_from_uuid(uuid):
+    if uuid in bluetooth_constants.UUID_NAMES:
+        return bluetooth_constants.UUID_NAMES[uuid]
+    else:
+        return "Unknown"
+
+def text_to_ascii_array(text):
+    ascii_values = []
+    for character in text:
+        ascii_values.append(ord(character))
+    return ascii_values
+
+def print_properties(props):
+    # dbus.Dictionary({dbus.String('SupportedInstances'): dbus.Byte(4, variant_level=1), dbus.String('ActiveInstances'): dbus.Byte(1, variant_level=1)}, signature=dbus.Signature('sv'))
+    for key in props:
+        print(key+"="+str(props[key]))
+
 # Signal called once a devices properites changes. Address will always stay same however
 def properties_changed(interface, changed, invalidated, path):
     if interface != bluetooth_constants.DEVICE_INTERFACE:
@@ -34,7 +91,7 @@ def properties_changed(interface, changed, invalidated, path):
 
     dev = devices[path]
     #printDeviceData(dev, path)
-    printDroneDetails(dev)
+    printDroneDetails(dev, "updated")
 
 def interfaces_removed(path, interfaces):
     # interfaces is an array of dictionary strings in this signal
@@ -43,7 +100,7 @@ def interfaces_removed(path, interfaces):
     if path in devices:
         dev = devices[path]
         if 'Address' in dev:
-            print("DEL bdaddr: ", bluetooth_utils.dbus_to_python(dev['Address']))
+            print("DEL bdaddr: ", dbus_to_python(dev['Address']))
         else:
             print("DEL path : ", path)  
             print("------------------------------")
@@ -59,7 +116,7 @@ def interfaces_added(path, interfaces):
         devices[path] = device_properties
         dev = devices[path]
         #printDeviceData(dev, path)
-        printDroneDetails(dev)
+        printDroneDetails(dev, "added")
 
 def discovery_timeout():
     global adapter_interface
@@ -74,12 +131,13 @@ def discovery_timeout():
     bus.remove_signal_receiver(properties_changed,"PropertiesChanged")
     return True
 
-def printDroneDetails(drone):
+def printDroneDetails(drone, state):
     if 'Name' in drone and 'Drone' in drone['Name']:
         print('------ *£* -----')
         print("WE found the drone")
-        packet = bluetooth_utils.dbus_to_python(drone['ServiceData'])
-        print(packet)
+        print(state)
+        packet = dbus_to_python(drone['ServiceData'])
+        
         array = packet.values()
         array = list(packet.values())[0]
         tempstr = ""
@@ -87,11 +145,10 @@ def printDroneDetails(drone):
             if i <= 15:
                 tempstr += "0"
             tempstr += hex(i)[2:]
-        print(tempstr)
-
         data = bytes.fromhex(tempstr)
-        print(data.hex('-'))
+        #print(data.hex('-'))
         long, lat, altitude, velX, velY, velZ = struct.unpack('iiHhhh', bytes(data))
+        print("NEW name : ", dbus_to_python(drone['Name']))
         print(f"long: {long}")
         print(f"lat: {lat}")
         print(f"altitude: {altitude}")
@@ -104,11 +161,11 @@ def printDroneDetails(drone):
 def printDeviceData(dev, path):
     print("CHG path :", path)
     if 'Address' in dev:
-        print("NEW bdaddr: ", bluetooth_utils.dbus_to_python(dev['Address']))
+        print("NEW bdaddr: ", dbus_to_python(dev['Address']))
     if 'Name' in dev:
-        print("NEW name : ", bluetooth_utils.dbus_to_python(dev['Name']))
+        print("NEW name : ", dbus_to_python(dev['Name']))
     if 'RSSI' in dev:
-        print("NEW RSSI : ", bluetooth_utils.dbus_to_python(dev['RSSI']))
+        print("NEW RSSI : ", dbus_to_python(dev['RSSI']))
     print("------------------------------")
 
 # TOOD: FILTER THE DISCOVERIES
@@ -131,6 +188,13 @@ def discover_devices(bus, timeout):
     # register signal handler functions so we can asynchronously report discovered devices
     # InterfacesAdded signal is emitted by BlueZ when an advertising packetfrom a device it doesn't
     # already know about is received
+
+    # Can only BLE and not bluetooth classic. 
+    adapter_interface.SetDiscoveryFilter({'Transport': "le"})
+
+
+#-------------------------------
+
     bus.add_signal_receiver(interfaces_added,dbus_interface = bluetooth_constants.DBUS_OM_IFACE, signal_name = "InterfacesAdded")
     
     # InterfacesRemoved signal is emitted by BlueZ when a device "goes away"
@@ -155,6 +219,9 @@ scantime = int(sys.argv[1]) * 1000
 # dbus initialisation steps
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 bus = dbus.SystemBus()
+
+
+
 print("Scanning")
 discover_devices(bus, scantime)
 print(len(devices))
