@@ -24,7 +24,7 @@ devices = {}
 class ObstacleManager():
     def __init__(self, scanTime):
         scanTime = scanTime * 1000
-
+        self.droneHistory = []
         # dbus initialisation steps
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         bus = dbus.SystemBus()
@@ -167,7 +167,7 @@ class ObstacleManager():
             print(f'velX: {velX}')
             print(f"velY: {velY}")
             print(f"VelZ: {velZ}")
-
+            self.droneHistory.append({'Name': drone['Name'], 'macAddress': '', 'Longitude' : long, 'Latitude' : lat, 'Altitude': altitude, 'VelX' : velX, 'VelY' : velY, 'VelZ': velZ})
             #print(f'lat : {lat}')
 
     def printDeviceData(self, dev, path):
