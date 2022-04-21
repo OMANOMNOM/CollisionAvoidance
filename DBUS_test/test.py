@@ -1,3 +1,4 @@
 import Broadcast
+import ObstacleManager
 
-Broadcast.broadcastOut(timer  = 10, changes = 8)
+mgr = ObstacleManager.ObstacleManager(30)
