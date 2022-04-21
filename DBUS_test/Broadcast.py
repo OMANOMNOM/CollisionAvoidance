@@ -79,7 +79,7 @@ def start_advertising():
         error_handler=register_ad_error_cb)
 
 
-def broadcastOut(timer  = 5, changes = 5):
+def broadcastOut(timer  = 5, testUAV = Uav.Uav(f"Drone3", "69", 56, -22, 10, [1,0,0])):
     global adv
     global adv_mgr_interface
 
@@ -104,20 +104,17 @@ def broadcastOut(timer  = 5, changes = 5):
     # we're only registering one advertisement object so index (arg2) is hard
     #coded as 
 
-    for i in range(0,changes):
+    # We create an advertising object and indicate peripheral. I would change this to broadcast
+    adv = Broadcast(bus, 0, testUAV)
+    start_advertising()
+    print("Advertising as "+ adv.local_name)
+    mainloop = GLib.MainLoop()
 
-        testUAV = Uav.Uav(f"Drone{i}", "69", 56, -22, 10, [1,0,0])
-        # We create an advertising object and indicate peripheral. I would change this to broadcast
-        adv = Broadcast(bus, 0, testUAV)
-        start_advertising()
-        print("Advertising as "+ adv.local_name)
-        mainloop = GLib.MainLoop()
+    threading.Thread(target=shutdown, args=(timer,)).start()
+    # Execution stops here until loop is mainloop, hence a new thread for the timer is required
+    mainloop.run()
 
-        threading.Thread(target=shutdown, args=(timer,)).start()
-        # Execution stops here until loop is mainloop, hence a new thread for the timer is required
-        mainloop.run()
-
-        adv_mgr_interface.UnregisterAdvertisement(adv)
-        #print('Advertisement unregistered')
-        dbus.service.Object.remove_from_connection(adv)
-        print("Execution has stopped")
+    adv_mgr_interface.UnregisterAdvertisement(adv)
+    #print('Advertisement unregistered')
+    dbus.service.Object.remove_from_connection(adv)
+    print("Execution has stopped")
