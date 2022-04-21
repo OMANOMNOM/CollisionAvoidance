@@ -65,7 +65,7 @@ class Advertisement(dbus.service.Object):
         if self.MinInterval is not None:
             properties['MinInterval'] = dbus.UInt32(self.MinInterval)
 
-        print(properties)
+        #print(properties)
         return {bluetooth_constants.ADVERTISING_MANAGER_INTERFACE:properties}
 
     def get_path(self):

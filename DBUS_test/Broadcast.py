@@ -73,7 +73,7 @@ def start_advertising():
     global adv
     global adv_mgr_interface
     # Call registerAdvertisemnt, passing in our proxy object and callbacks.
-    print("Registering advertisement",adv.get_path())
+    #print("Registering advertisement",adv.get_path())
     adv_mgr_interface.RegisterAdvertisement(adv.get_path(), {},
         reply_handler=register_ad_cb,
         error_handler=register_ad_error_cb)
@@ -92,11 +92,8 @@ def broadcastOut(timer  = 5, testUAV = Uav.Uav(f"Drone3", "69", 56, -22, 10, [1,
     bus = dbus.SystemBus()
     # we're assuming the adapter supports advertising
     adapter_path = bluetooth_constants.BLUEZ_NAMESPACE + bluetooth_constants.ADAPTER_NAME
-    print(adapter_path)
+    #print(adapter_path)
 
-    if (len(sys.argv) != 2):
-        print("usage: python3 client_discover_devices.py [scantime (secs)]")
-        sys.exit(1)
 
 
     # Get advertising manager
@@ -117,4 +114,4 @@ def broadcastOut(timer  = 5, testUAV = Uav.Uav(f"Drone3", "69", 56, -22, 10, [1,
     adv_mgr_interface.UnregisterAdvertisement(adv)
     #print('Advertisement unregistered')
     dbus.service.Object.remove_from_connection(adv)
-    print("Execution has stopped")
+    #print("Execution has stopped")

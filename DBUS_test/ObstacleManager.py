@@ -100,7 +100,7 @@ class ObstacleManager():
             devices[path].update(changed.items())
         else:
             devices[path] = changed
-
+        
         dev = devices[path]
         #printDeviceData(dev, path)
         self.printDroneDetails(dev, "updated")
