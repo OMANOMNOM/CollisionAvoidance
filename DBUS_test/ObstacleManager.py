@@ -6,6 +6,7 @@ import dbus
 import dbus.mainloop.glib
 import sys
 import struct 
+import Uav
 sys.path.insert(0, '.')
 
 # When bluez performs scanning, an object representing it is created by bluez. It is exported
@@ -25,14 +26,14 @@ class ObstacleManager():
     def __init__(self, scanTime):
         scanTime = scanTime * 1000
         self.droneHistory = []
+        self.KnownDrones = []
         # dbus initialisation steps
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         bus = dbus.SystemBus()
 
         print("Scanning")
         self.discover_devices(bus, scanTime)
-        print(len(devices))
-
+        #print(f'Number of bluetooth devices found is: {len(devices)}')
 
     def byteArrayToHexString(self, bytes):
         hex_string = ""
@@ -103,20 +104,23 @@ class ObstacleManager():
         
         dev = devices[path]
         #printDeviceData(dev, path)
-        self.printDroneDetails(dev, "updated")
+        #self.printDroneDetails(dev, "updated")
+        tempDrone = self.extracPacket(dev)
+        if tempDrone != None:
+            self.KnownDrones = [tempDrone]
 
     def interfaces_removed(self, path, interfaces):
         # interfaces is an array of dictionary strings in this signal
         if not bluetooth_constants.DEVICE_INTERFACE in interfaces:
             return
-        if path in devices:
-            dev = devices[path]
-            if 'Address' in dev:
-                print("DEL bdaddr: ", self.dbus_to_python(dev['Address']))
-            else:
-                print("DEL path : ", path)  
-                print("------------------------------")
-            del devices[path]
+        #if path in devices:
+            #dev = devices[path]
+            #if 'Address' in dev:
+            #    print("DEL bdaddr: ", self.dbus_to_python(dev['Address']))
+            #else:
+            #    print("DEL path : ", path)  
+            #    print("------------------------------")
+            #del devices[path]
 
     # Called for each new device discovered
     def interfaces_added(self, path, interfaces):
@@ -128,7 +132,11 @@ class ObstacleManager():
             devices[path] = device_properties
             dev = devices[path]
             #printDeviceData(dev, path)
-            self.printDroneDetails(dev, "added")
+            #self.printDroneDetails(dev, "added")
+            tempDrone = self.extracPacket(dev)
+            if tempDrone != None:
+                self.KnownDrones = [tempDrone]
+
 
     def discovery_timeout(self):
         global adapter_interface
@@ -143,6 +151,21 @@ class ObstacleManager():
         bus.remove_signal_receiver(self.properties_changed,"PropertiesChanged")
         return True
 
+    def extracPacket(self, drone):
+        if 'Name' in drone and 'Drone' in drone['Name']:
+            packet = self.dbus_to_python(drone['ServiceData'])
+            array = packet.values()
+            array = list(packet.values())[0]
+            tempstr = ""
+            for i in array:
+                if i <= 15:
+                    tempstr += "0"
+                tempstr += hex(i)[2:]
+            data = bytes.fromhex(tempstr)
+            #print(data.hex('-'))
+            long, lat, altitude, velX, velY, velZ = struct.unpack('iiHhhh', bytes(data))
+            return Uav.Uav(drone['Name'], "", lat, long, altitude, [velX, velY, velZ])
+ 
     def printDroneDetails(self, drone, state):
         if 'Name' in drone and 'Drone' in drone['Name']:
             print('------ *£* -----')
@@ -204,9 +227,7 @@ class ObstacleManager():
         # Can only BLE and not bluetooth classic. 
         adapter_interface.SetDiscoveryFilter({'Transport': "le"})
 
-
     #-------------------------------
-
         bus.add_signal_receiver(self.interfaces_added,dbus_interface = bluetooth_constants.DBUS_OM_IFACE, signal_name = "InterfacesAdded")
         
         # InterfacesRemoved signal is emitted by BlueZ when a device "goes away"
