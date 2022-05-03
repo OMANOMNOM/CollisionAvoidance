@@ -50,7 +50,7 @@ class VirtualDrone(Uav.Uav):
             time.sleep(1.0 - ((time.time() - starttime) % 1.0))
 
     def broadcastvirtual(self):
-        Broadcast.broadcastOut(1, Uav.Uav( "Drone3", "", self.x/100000, self.y/1000000, 0, [0,0,0]))
+        Broadcast.broadcastOut(1, Uav.Uav( "Drone3", "", self.x, self.y, 0, [0,0,0]))
 
 
     #Fly directly to goal in a linear fashion.

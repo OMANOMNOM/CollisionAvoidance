@@ -32,8 +32,10 @@ class Broadcast(AdvertisementUtil.Advertisement):
         if binaryData != None:
             pass
         else:
-            latitude = (self.LongLat2Unit(drone.latitude)) 
-            longitude = (self.LongLat2Unit(drone.longitude))
+            #latitude = (self.LongLat2Unit(drone.latitude)) 
+            #longitude = (self.LongLat2Unit(drone.longitude))
+            latitude = drone.latitude
+            longitude = drone.longitude
             altitude = (self.AltConversion(drone.altitude))
             curVelocity = drone.curVelocity
             packet = struct.pack('iiHhhh', latitude, longitude, altitude, curVelocity[0], curVelocity[1], curVelocity[2])
