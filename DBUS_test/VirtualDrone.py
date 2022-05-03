@@ -30,11 +30,12 @@ class VirtualDrone(Uav.Uav):
         isCallable = True # we broadcast everyother loop
         starttime = time.time()
         while True:
-            print("tick")
+            print("-----------tick------------")
             print(f"Cur Position X:{self.x} Y:{self.y}Z:{self.z}")
             if self.isAtGoal():
                 if self.curGoalIndex+1 == len(self.goals):
-                    pass #Stop test
+                    print('Loop complete')
+                    self.curGoalIndex = 0
                 else:
                     self.curGoalIndex += 1
             self.goToGoal()

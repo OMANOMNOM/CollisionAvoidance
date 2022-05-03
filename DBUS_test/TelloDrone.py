@@ -1,4 +1,4 @@
-#import sympy
+import sympy
 import ObstacleManager
 import Uav
 import goal
@@ -23,6 +23,7 @@ class TelloDone(Uav.Uav):
 
         self.maxSpeed = 100
         self.obsMgr = None
+        self.obsList = []
         self.update()
 
     #Updates once a second
@@ -37,8 +38,11 @@ class TelloDone(Uav.Uav):
             new_thread = Thread(target=self.broadcastIn)
             new_thread.start()
 
+            # Check for collision from prevous tick
+            for i in self.obsList:
+                self.PredictCollision(i)
 
-            #Wait a second
+            #Wait for the remainder of tick
             time.sleep(1.0 - ((time.time() - starttime) % 1.0))
             new_thread.join()
             
@@ -46,31 +50,35 @@ class TelloDone(Uav.Uav):
     
     def broadcastIn(self):
         self.obsMgr = ObstacleManager.ObstacleManager(1)
-        for i in self.obsMgr.KnownDrones:
-            i.printDrone()
+        if len(self.obsMgr.KnownDrones) > 0: 
+            self.obsList = self.obsMgr.KnownDrones
+            for i in self.obsMgr.KnownDrones:
+                i.printDrone()
+
         #return self.obsMgr.
 
-    """
-    def PredictCollision():
+    
+    def PredictCollision(self, drone):
         # Get all current obstacles 
         obsVel = [0, -1]
-        obsPosPoint = Point(0,10)
+        #obsVel = [drone.curVelocity[0], drone.curVelocity[1]]
+        obsPosPoint = sympy.Point(drone.latitude,drone.longitude)
         obsBubbleRadius = 1
 
         # Get state of Drone
         droneVel = [0, 0]
-        dronePosPoint = Point(3,0)
+        dronePosPoint = sympy.Point(self.x,self.y)
         dronebubbleRadius = 3
         # Reduce A to a point and enlarge B by the radius of A
         obsBubbleRadius += dronebubbleRadius 
 
         #Calculate collision cone dimensiSSSSSons
-        collisionBoundaries = Circle(obsPosPoint, obsBubbleRadius)
-        print(collisionBoundaries.equation())
+        collisionBoundaries = sympy.Circle(obsPosPoint, obsBubbleRadius)
+        #print(collisionBoundaries.equation())
 
         # Generate CC
         tangentLines = collisionBoundaries.tangent_lines(dronePosPoint)
-        collisonCone = Polygon(tangentLines[1].p1, tangentLines[1].p2, tangentLines[0].p2)
+        collisonCone = sympy.Polygon(tangentLines[1].p1, tangentLines[1].p2, tangentLines[0].p2)
         # Scale collision cone for time horizon
         #print(collisonCone)
 
@@ -79,11 +87,11 @@ class TelloDone(Uav.Uav):
         #print(collisonCone)
 
         #Check if absolute veloicty of A falls witihin CC ()
-        VelVectorTip = Point(dronePosPoint.x + droneVel[0],  dronePosPoint.y + droneVel[1])
-        print(VelVectorTip)
+        VelVectorTip = sympy.Point(dronePosPoint.x + droneVel[0],  dronePosPoint.y + droneVel[1])
+        #print(VelVectorTip)
         if(collisonCone.encloses_point(VelVectorTip)):
             print("We have a inpending collision")
-    """
+    
 
     def EscapeManeuver():
         pass 

@@ -57,7 +57,8 @@ class Broadcast(AdvertisementUtil.Advertisement):
 
 # Success callback
 def register_ad_cb():
-    print('Advertisement registered OK')
+    pass
+    #print('Advertisement registered OK')
 
 # Failure to advertise callback
 def register_ad_error_cb(error):
@@ -65,7 +66,7 @@ def register_ad_error_cb(error):
     mainloop.quit()
 
 def shutdown(timeout):
-    print('Advertising for {} seconds...'.format(timeout))
+    #print('Advertising for {} seconds...'.format(timeout))
     time.sleep(timeout)
     mainloop.quit()
 
@@ -104,7 +105,7 @@ def broadcastOut(timer  = 5, testUAV = Uav.Uav(f"Drone3", "69", 56, -22, 10, [1,
     # We create an advertising object and indicate peripheral. I would change this to broadcast
     adv = Broadcast(bus, 0, testUAV)
     start_advertising()
-    print("Advertising as "+ adv.local_name)
+    #print("Advertising as "+ adv.local_name)
     mainloop = GLib.MainLoop()
 
     threading.Thread(target=shutdown, args=(timer,)).start()
