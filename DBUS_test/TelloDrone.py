@@ -6,7 +6,8 @@ import time
 import math
 import Broadcast
 from threading import Thread
-
+import tellopy
+import random
 
 
 # Long lat represent UAV starting position. Typically at zero 
@@ -24,19 +25,35 @@ class TelloDone(Uav.Uav):
         self.maxSpeed = 100
         self.obsMgr = None
         self.obsList = []
-        self.update()
+        self.drone = tellopy.Tello()
+        self.startup()
+        #self.update()
+    
+
+    def startup(self):
+        #self.drone.subscribe(self.drone.EVENT_FLIGHT_DATA, self.handler)
+        self.drone.connect()
+        self.drone.wait_for_connection(60.0)
+        self.drone.takeoff() 
+        self.update() 
 
     #Updates once a second
     def update(self):
-
         while True:
-            #print("tick")
+            # We have to regularally send drone dummy commands to stop it from going into standby mode
+            if self.drone != None:
+                self.drone.down(0)
+            print("---------tick-----------------")
             starttime = time.time()
             print(f"Cur Position X:{self.x} Y:{self.y} Z:{self.z}")
 
             # Broadcast in 
             new_thread = Thread(target=self.broadcastIn)
             new_thread.start()
+
+            # Known drones from prevous tick
+            for i in self.obsList:
+                i.printDrone()
 
             # Check for collision from prevous tick
             for i in self.obsList:
@@ -45,9 +62,8 @@ class TelloDone(Uav.Uav):
             #Wait for the remainder of tick
             time.sleep(1.0 - ((time.time() - starttime) % 1.0))
             new_thread.join()
-            
+            print('\n')
 
-    
     def broadcastIn(self):
         self.obsMgr = ObstacleManager.ObstacleManager(1)
         if len(self.obsMgr.KnownDrones) > 0: 
@@ -57,44 +73,72 @@ class TelloDone(Uav.Uav):
 
         #return self.obsMgr.
 
-    
     def PredictCollision(self, drone):
         # Get all current obstacles 
         obsVel = [0, -1]
         #obsVel = [drone.curVelocity[0], drone.curVelocity[1]]
         obsPosPoint = sympy.Point(drone.latitude,drone.longitude)
-        obsBubbleRadius = 1
+        obsBubbleRadius = 75
 
         # Get state of Drone
         droneVel = [0, 0]
-        dronePosPoint = sympy.Point(self.x,self.y)
-        dronebubbleRadius = 3
-        # Reduce A to a point and enlarge B by the radius of A
-        obsBubbleRadius += dronebubbleRadius 
+        #dronePosPoint = sympy.Point(self.x,self.y)
+        dronePosPoint = sympy.Point(-500,-400)
+        dronebubbleRadius = 75
 
-        #Calculate collision cone dimensiSSSSSons
-        collisionBoundaries = sympy.Circle(obsPosPoint, obsBubbleRadius)
-        #print(collisionBoundaries.equation())
+        # If on the same plane
+        if self.altitude == drone.altitude:
+            # Reduce A to a point and enlarge B by the radius of A
+            obsBubbleRadius += dronebubbleRadius 
 
-        # Generate CC
-        tangentLines = collisionBoundaries.tangent_lines(dronePosPoint)
-        collisonCone = sympy.Polygon(tangentLines[1].p1, tangentLines[1].p2, tangentLines[0].p2)
-        # Scale collision cone for time horizon
-        #print(collisonCone)
+            # Check drone isn't already within collision volume
+            if( dronePosPoint.distance(obsPosPoint) < obsBubbleRadius):
+                print("we have a collision")
+            else:
+                #Calculate collision cone dimensiSSSSSons
+                collisionBoundaries = sympy.Circle(obsPosPoint, obsBubbleRadius)
+                #print(collisionBoundaries.equation())
 
-        # Translate CC by B
-        collisonCone= collisonCone.translate(obsVel[0], obsVel[1])
-        #print(collisonCone)
+                # Generate CC
+                tangentLines = collisionBoundaries.tangent_lines(dronePosPoint)
+                collisonCone = sympy.Polygon(tangentLines[1].p1, tangentLines[1].p2, tangentLines[0].p2)
+                # Scale collision cone for time horizon
+                #print(collisonCone)
 
-        #Check if absolute veloicty of A falls witihin CC ()
-        VelVectorTip = sympy.Point(dronePosPoint.x + droneVel[0],  dronePosPoint.y + droneVel[1])
-        #print(VelVectorTip)
-        if(collisonCone.encloses_point(VelVectorTip)):
-            print("We have a inpending collision")
-    
+                # Translate CC by B
+                collisonCone= collisonCone.translate(obsVel[0], obsVel[1])
+                #print(collisonCone)
 
-    def EscapeManeuver():
-        pass 
+                #Check if absolute veloicty of A falls witihin CC ()
+                VelVectorTip = sympy.Point(dronePosPoint.x + droneVel[0],  dronePosPoint.y + droneVel[1])
+                #print(VelVectorTip)
+                if(collisonCone.encloses_point(VelVectorTip)):
+                    print("We have a inpending collision")
+
+    def EscapeManeuver(self, collisonCone, dronePosPoint):
+        # Try forwards
+        potentialDestinationForward = sympy.Point(dronePosPoint.x, dronePosPoint.y + 200 )
+        if collisonCone.encloses_point(potentialDestinationForward) == False:
+            self.y + 200
+            self.drone.forward(200)
+            return
+        potentialDestinationBackwards = sympy.Point(dronePosPoint.x, dronePosPoint.y - 200)
+        if collisonCone.encloses_point(potentialDestinationBackwards) == False:
+            self.y + -200
+            self.drone.backward(200)
+            return
+        potentialDestinationLeft = sympy.Point(dronePosPoint.x - 200, dronePosPoint.y)
+        if collisonCone.encloses_point(potentialDestinationLeft) == False:
+            self.x - 200
+            self.drone.left(200)
+            return
+        potentialDestinationRight = sympy.Point(dronePosPoint.x + 200, dronePosPoint.y )
+        if collisonCone.encloses_point(potentialDestinationLeft) == False:
+            self.x + 200
+            self.drone.right(200)
+            self.up(100)
+            self.z = 200
+            return
 
            
 
