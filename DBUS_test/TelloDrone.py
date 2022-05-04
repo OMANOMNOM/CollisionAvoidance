@@ -117,28 +117,35 @@ class TelloDone(Uav.Uav):
 
     def EscapeManeuver(self, collisonCone, dronePosPoint):
         # Try forwards
-        potentialDestinationForward = sympy.Point(dronePosPoint.x, dronePosPoint.y + 200 )
-        if collisonCone.encloses_point(potentialDestinationForward) == False:
-            self.y + 200
-            self.drone.forward(200)
-            return
-        potentialDestinationBackwards = sympy.Point(dronePosPoint.x, dronePosPoint.y - 200)
-        if collisonCone.encloses_point(potentialDestinationBackwards) == False:
-            self.y + -200
-            self.drone.backward(200)
-            return
-        potentialDestinationLeft = sympy.Point(dronePosPoint.x - 200, dronePosPoint.y)
-        if collisonCone.encloses_point(potentialDestinationLeft) == False:
-            self.x - 200
-            self.drone.left(200)
-            return
-        potentialDestinationRight = sympy.Point(dronePosPoint.x + 200, dronePosPoint.y )
-        if collisonCone.encloses_point(potentialDestinationLeft) == False:
-            self.x + 200
-            self.drone.right(200)
-            self.up(100)
-            self.z = 200
-            return
+        escapeTrajectoryLength = 200
+        while true:
+            potentialDestinationForward = sympy.Point(dronePosPoint.x, dronePosPoint.y + escapeTrajectoryLength )
+            if collisonCone.encloses_point(potentialDestinationForward) == False:
+                self.y + 200
+                self.drone.forward(200)
+                self.drone.sleep(5)
+                return
+            potentialDestinationBackwards = sympy.Point(dronePosPoint.x, dronePosPoint.y - escapeTrajectoryLength)
+            if collisonCone.encloses_point(potentialDestinationBackwards) == False:
+                self.y + -200
+                self.drone.backward(200)
+                self.drone.sleep(5)
+                return
+            potentialDestinationLeft = sympy.Point(dronePosPoint.x - escapeTrajectoryLength, dronePosPoint.y)
+            if collisonCone.encloses_point(potentialDestinationLeft) == False:
+                self.x - 200
+                self.drone.left(200)
+                self.drone.sleep(5)
+                return
+            potentialDestinationRight = sympy.Point(dronePosPoint.x + escapeTrajectoryLength, dronePosPoint.y )
+            if collisonCone.encloses_point(potentialDestinationLeft) == False:
+                self.x + 200
+                self.drone.right(200)
+                self.up(100)
+                self.z = 200
+                self.drone.sleep(5)
+                return
+            escapeTrajectoryLength += 100
 
            
 
